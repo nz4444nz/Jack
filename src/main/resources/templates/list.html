@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="../js/vuejs/vuejs-2.5.16.js"></script>
+    <script type="text/javascript" src="../js/vuejs/axios-0.18.0.js"></script>
+</head>
+<body>
+    <div id="app" align="center" style="margin: 5%">
+        <table rules="all" border="1">
+            <tr align="center">
+                <td colspan="20">
+                    按照姓名查询:<input type="text  " v-model="searchEntity.gname"/>
+                    按照价格区间:<input type="number" v-model="searchEntity.gprice"/>--至
+                    <input type="number" v-model="searchEntity.eprice"/>
+                    <input type="button" @click="findAll()" value="检索"/>
+                </td>
+            </tr>
+            <input type="button" value="批量删除" @click="deleteBatch()"/>
+            <input type="button" value="新增" @click="toInsert()"/>
+            <tr align="center">
+                <td><input type="checkbox"/></td>
+                <td>编号</td>
+                <td>商品名称</td>
+                <td>商品价格</td>
+                <td>商品地址</td>
+                <td>商品品牌</td>
+                <td>商品商家</td>
+            </tr>
+            <tr v-for="u in list" align="center">
+                <td>
+                    <input type="checkbox" v-model="gids" :value="u.gid"/>
+                </td>
+                <td>{{u.gid}}</td>
+                <td>{{u.gname}}</td>
+                <td>{{u.gprice}}</td>
+                <td>{{u.gaddress}}</td>
+                <td>{{u.bb.bname}}</td>
+                <td>{{u.sb.sname}}</td>
+            </tr>
+            <tr align="center">
+                <td colspan="100">
+                    当前{{pageInfo.pageNum}}/{{pageInfo.pages}}页，共计{{pageInfo.total}}条记录;
+                    <button @click="paging(1)">首页</button>
+                    <button @click="paging(pageInfo.prePage)">上一页</button>
+                    <button @click="paging(pageInfo.nextPage)">下一页</button>
+                    <button @click="paging(pageInfo.lastPage)">尾页</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script>
+        new Vue({
+            el:'#app',
+            data:{
+                list:[],
+                pageNum:1,
+                pageSize:5,
+                pageInfo:{},
+                searchEntity:{},
+                gids:[],
+            },
+            methods:{
+                paging:function(pageNum){
+                    if(pageNum==0){
+                        pageNum = 1;
+                    }
+                    this.pageNum = pageNum;
+                    this.findAll();
+                },
+                findAll() {
+                    var _this = this
+                    var url = "../goods/findAll?pageNum="+this.pageNum+"&pageSize="+this.pageSize;
+                    axios.post(url,_this.searchEntity).then(function (response) {
+                        _this.list = response.data.list
+                        _this.pageNum = response.data.pageNum;
+                        _this.pageInfo = response.data;
+                    })
+                },
+                deleteBatch:function(){
+                    if(this.gids!=null&&this.gids.length>=1){
+                        var _this = this;
+                        axios.post('../goods/deleteBatch',_this.gids).then(function (response) {
+                            if(response.data.flag){
+                                _this.findAll();
+                            }else {
+                                alert(response.data.msg);
+                            }
+                        });
+                    }
+                },
+                toInsert(){
+                    location.href="../main/toInsert"
+                }
+            },
+            created(){
+                this.findAll();
+            }
+        });
+    </script>
+</body>
+</html>

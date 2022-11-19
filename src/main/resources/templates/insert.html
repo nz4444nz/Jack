@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="../js/vuejs/vuejs-2.5.16.js"></script>
+    <script type="text/javascript" src="../js/vuejs/axios-0.18.0.js"></script>
+</head>
+<body>
+    <div id="app" align="center" style="margin: 5%">
+     <table>
+         <tr>
+             <td>商品名称</td>
+             <td><input v-model="GoodsBean.gname"></td>
+         </tr>
+         <tr>
+             <td>商品价格</td>
+             <td><input type="number" v-model="GoodsBean.gprice"></td>
+         </tr>
+         <tr>
+             <td>商品地址</td>
+             <td><input v-model="GoodsBean.gaddress"></td>
+         </tr>
+<!--         <tr>-->
+<!--             <td colspan="20">-->
+<!--                 <select v-model="proid" @change="getCityList()">-->
+<!--                     <option :value="-1">&#45;&#45;请选择省&#45;&#45;</option>-->
+<!--                     <option v-for="p in proList" :value="p.id">{{p.cname}}</option>-->
+<!--                 </select>-->
+<!--                 <select v-model="cityid" @change="getCouList()">-->
+<!--                     <option :value="-1">&#45;&#45;请选择市&#45;&#45;</option>-->
+<!--                     <option v-for="c in cityList" :value="c.id">{{c.cname}}</option>-->
+<!--                 </select>-->
+<!--                 <select v-model="couid" @change="getGaddress()">-->
+<!--                     <option :value="-1">&#45;&#45;请选择市&#45;&#45;</option>-->
+<!--                     <option v-for="cou in couList" :value="cou.id">{{cou.cname}}</option>-->
+<!--                 </select>-->
+<!--             </td>-->
+<!--         </tr>-->
+         <tr>
+             <td>商品品牌</td>
+             <td><input type="radio" v-model="GoodsBean.bid" value="1" >小米
+                 <input type="radio" v-model="GoodsBean.bid" value="2" >苹果</td>
+         </tr>
+         <tr>
+             <td>商品商家</td>
+             <td><input type="radio" v-model="GoodsBean.sid" value="1" >小米商城
+                 <input type="radio" v-model="GoodsBean.sid" value="2" >apple商城</td>
+         </tr>
+         <tr align="cen">
+             <td colspan="100">
+                 <input type="button" value="保存" @click="insert()"/>
+             </td>
+         </tr>
+     </table>
+    </div>
+    <script>
+        new Vue({
+            el:'#app',
+            data:{
+                GoodsBean:{},
+                proList:[],
+                cityList:[],
+                couList:[],
+                goodsBean:{},
+                proid:-1,
+                cityid:-1,
+                couid:-1,
+                proname:'',
+                cityname:'',
+                couname:''
+            },
+            methods:{
+                insert:function(){
+                    var _this = this;
+                    axios.post('../goods/insert',_this.GoodsBean).then(function (response) {
+                        if(response.data.flag){
+                            alert(response.data)
+                            location.href ="../main/toIndex"
+                        }else {
+                            alert(response.data.msg);
+                        }
+                    });
+                },
+
+
+                getCnameByIdAndList:function(id,arr){
+                    if (arr!=null&&arr.length>=1){
+                        for (var x=0;x<arr.length;x++){
+                            if (arr[x].id ==id){
+                                return arr[x].cname;
+                            }
+                        }
+                    }
+                },
+                getGaddress:function(){
+                    this.couname = this.getCnameByIdAndList(this.couid,this.couList);
+                    this.GoodsBean.gaddress = this.proname+this.cityname+this.couname;
+                },
+                getCouList(){
+                    this.cityname = this.getCnameByIdAndList(this.cityid,this.cityList);
+                    this.GoodsBean.gaddress = this.proname+this.cityname;
+                    var _this = this;
+                    axios.get('../goods/getCityListByPid?pid='+_this.cityid).then(function (response) {
+                        _this.couList = response.data;
+                    });
+                },
+                getCityList(){
+                    this.proname = this.getCnameByIdAndList(this.proid,this.proList);
+                    this.GoodsBean.gaddress = this.proname;
+                    this.couList = [];
+                    var _this =this;
+                    axios.get('../goods/getCityListByPid?pid='+_this.proid).then(function (response) {
+                        _this.cityList = response.data;
+                    });
+                },
+                //城市列表
+                getProList(){
+                    var _this =this;
+                    axios.get('../goods/getCityListByPid?pid=1').then(function (response) {
+                        _this.proList = response.data;
+                    });
+                },
+            },
+            created(){
+                this.getProList();
+            }
+        });
+    </script>
+</body>
+</html>
